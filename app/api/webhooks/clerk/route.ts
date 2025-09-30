@@ -12,7 +12,7 @@ export async function POST(req: NextRequest) {
         const eventType = evt.type
 
         switch (eventType) {
-            case 'user.created':
+            case "user.created":
                 await db.user.create({
                     data: {
                         externalUserId: evt.data.id,
@@ -21,7 +21,7 @@ export async function POST(req: NextRequest) {
                     }
                 });
                 break;
-            case 'user.updated':
+            case "user.updated":
                 await db.user.update({
                     where: { externalUserId: evt.data.id },
                     data: {
@@ -30,7 +30,7 @@ export async function POST(req: NextRequest) {
                     }
                 });
                 break;
-            case 'user.deleted':
+            case "user.deleted":
                 await db.user.delete({
                     where: { externalUserId: evt.data.id }
                 });
