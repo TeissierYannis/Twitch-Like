@@ -1,14 +1,14 @@
-import { type Metadata } from 'next'
+import {type Metadata} from 'next'
 import {
     ClerkProvider,
-    SignInButton,
-    SignUpButton,
-    SignedIn,
-    SignedOut,
-    UserButton,
 } from '@clerk/nextjs'
-import { Geist, Geist_Mono } from 'next/font/google'
+import {
+    dark
+} from "@clerk/themes";
+import {Geist, Geist_Mono} from 'next/font/google'
 import './globals.css'
+
+import {ThemeProvider} from "@/components/theme-provider";
 
 const geistSans = Geist({
     variable: '--font-geist-sans',
@@ -31,10 +31,16 @@ export default function RootLayout({
     children: React.ReactNode
 }>) {
     return (
-        <ClerkProvider>
+        <ClerkProvider appearance={{theme: dark}}>
             <html lang="en">
             <body className={`${geistSans.variable} ${geistMono.variable} antialiased`}>
-            {children}
+            <ThemeProvider
+                attribute="class"
+                forcedTheme="dark"
+                storageKey="gamehub-theme"
+            >
+                {children}
+            </ThemeProvider>
             </body>
             </html>
         </ClerkProvider>
