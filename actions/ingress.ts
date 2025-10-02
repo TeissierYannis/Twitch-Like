@@ -52,7 +52,6 @@ export const createIngress = async (ingressType: IngressInput) => {
     };
 
     if (ingressType === IngressInput.WHIP_INPUT) {
-        // Comme avant: pas de transcodage
         options.enableTranscoding = false;
     } else {
         options.video = new IngressVideoOptions({
