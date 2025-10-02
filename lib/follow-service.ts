@@ -1,4 +1,4 @@
-import { db } from "@/lib/db"
+import {db} from "@/lib/db"
 import {getSelf} from "@/lib/auth-service";
 
 export const getFollowedUsers = async () => {
@@ -7,7 +7,14 @@ export const getFollowedUsers = async () => {
 
         const followedUsers = db.follow.findMany({
             where: {
-                followerId: self.id
+                followerId: self.id,
+                following: {
+                    blocking: {
+                        none: {
+                            blockedId: self.id
+                        }
+                    }
+                }
             },
             include: {
                 following: true
@@ -22,11 +29,11 @@ export const getFollowedUsers = async () => {
 
 export const isFollowingUser = async (id: string) => {
     try {
-         const self = await getSelf();
+        const self = await getSelf();
 
-         const otherUser = await db.user.findUnique({
-             where: { id }
-         });
+        const otherUser = await db.user.findUnique({
+            where: {id}
+        });
 
         if (!otherUser) {
             throw new Error("User not found");
@@ -53,7 +60,7 @@ export const followUser = async (id: string) => {
     const self = await getSelf();
 
     const otherUser = await db.user.findUnique({
-        where: { id }
+        where: {id}
     });
 
     if (!otherUser) {
@@ -93,7 +100,7 @@ export const unfollowUser = async (id: string) => {
     const self = await getSelf();
 
     const otherUser = await db.user.findUnique({
-        where: { id }
+        where: {id}
     });
 
     if (!otherUser) {
