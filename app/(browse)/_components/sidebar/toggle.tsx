@@ -18,50 +18,32 @@ export const Toggle = () => {
     return (
         <>
             {collapsed && (
-                <div
-                    className="hidden lg:flex w-full items-center justify-center pt-4 mb-4">
-                    <Hint
-                        label={label}
-                        side="right"
-                        asChild
-                    >
+                <div className="hidden lg:flex w-full items-center justify-center pt-6 mb-4">
+                    <Hint label={label} side="right" asChild>
                         <Button
                             onClick={onExpand}
-                            className="h-auto p-2"
+                            className="h-auto p-3 hover:bg-sidebar-accent/50 text-sidebar-foreground"
                             variant="ghost"
                         >
-                            <ArrowRightFromLine
-                                className="h-4 w-4"
-                            />
+                            <ArrowRightFromLine className="h-5 w-5" />
                         </Button>
                     </Hint>
                 </div>
             )}
             {!collapsed && (
-                <div
-                    className="p-3 pl-6 mb-2 flex items-center w-full"
-                >
-                    <p
-                        className="font-semibold text-primary"
-                    >
+                <div className="p-4 px-6 mb-2 flex items-center w-full border-b border-sidebar-border/50">
+                    <h2 className="font-bold text-lg bg-gradient-to-r from-sidebar-primary to-sidebar-accent bg-clip-text text-transparent">
                         For you
-                    </p>
-                    <Hint
-                        label={label}
-                        side="right"
-                        asChild
-                    >
+                    </h2>
+                    <Hint label={label} side="right" asChild>
                         <Button
                             onClick={onCollapse}
-                            className="h-auto p-2 ml-auto"
+                            className="h-auto p-2 ml-auto hover:bg-sidebar-accent/50 text-sidebar-foreground transition-colors"
                             variant="ghost"
                         >
-                            <ArrowLeftFromLine
-                                className="h-4 w-4"
-                            />
+                            <ArrowLeftFromLine className="h-4 w-4" />
                         </Button>
                     </Hint>
-
                 </div>
             )}
         </>
@@ -70,13 +52,9 @@ export const Toggle = () => {
 
 export const ToggleSkeleton = () => {
     return (
-        <div className="p-3 pl-6 mb-2 hidden lg:flex items-center justify-between w-full">
-            <Skeleton
-                className="h-6 w-[100px]"
-            />
-            <Skeleton
-                className="h-6 w-6"
-            />
+        <div className="p-4 px-6 mb-2 hidden lg:flex items-center justify-between w-full border-b border-sidebar-border/30 animate-pulse">
+            <Skeleton className="h-6 w-[100px] bg-sidebar-accent/30" />
+            <Skeleton className="h-6 w-6 bg-sidebar-accent/20" />
         </div>
     )
 }

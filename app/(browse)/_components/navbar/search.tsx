@@ -37,29 +37,32 @@ export const Search = () => {
     return (
         <form
             onSubmit={onSubmit}
-            className="relative w-full lg:w-[400px] flex items-center"
+            className="relative w-full max-w-lg lg:w-[400px] flex items-center"
         >
-            <Input
-                value={value}
-                onChange={(e) => setValue(e.target.value)}
-                placeholder="Search..."
-                className="rounded-r-none focus-visible:ring-0 focus-visible:ring-transparent focus-visible:ring-offset-0"
-            />
-            {value && (
-                <X
-                    className="absolute top-2.5 right-14 h-5 w-5 text-muted-foreground cursor-pointer hover:opacity-75 transition"
-                    onClick={onClear}
+            <div className="relative w-full">
+                <Input
+                    value={value}
+                    onChange={(e) => setValue(e.target.value)}
+                    placeholder="Search streamers, games..."
+                    className="rounded-r-none bg-background/50 border-border/50 focus-visible:ring-1 focus-visible:ring-primary/50 focus-visible:border-primary/50 pl-4 pr-10"
                 />
-            )}
+                {value && (
+                    <button
+                        type="button"
+                        onClick={onClear}
+                        className="absolute top-1/2 -translate-y-1/2 right-12 p-1 hover:bg-muted/50 rounded-full transition-colors"
+                    >
+                        <X className="h-4 w-4 text-muted-foreground" />
+                    </button>
+                )}
+            </div>
             <Button
                 type="submit"
                 size="sm"
-                variant="secondary"
-                className="rounded-l-none"
+                variant="default"
+                className="rounded-l-none bg-gradient-to-r from-primary to-accent hover:from-primary/90 hover:to-accent/90 border-0 px-4"
             >
-                <SearchIcon
-                    className="h-5 w-5 text-muted-foreground"
-                />
+                <SearchIcon className="h-4 w-4 text-primary-foreground" />
             </Button>
         </form>
     );

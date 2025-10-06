@@ -18,9 +18,7 @@ export const Wrapper = ({children}: WrapperProps) => {
 
     if (!isClient) {
         return (
-            <aside
-            className="fixed left-0 flex flex-col w-[70px] lg:w-60 h-full bg-background border-r border-[#2D2E35] z-50"
-            >
+            <aside className="fixed left-0 flex flex-col w-[70px] lg:w-60 h-full backdrop-blur-md border-r z-50" style={{backgroundColor: 'hsl(var(--sidebar) / 0.95)', borderColor: 'hsl(var(--sidebar-border))'}}>
                 <ToggleSkeleton />
                 <FollowingSkeleton />
                 <RecommandedSkeleton />
@@ -31,9 +29,10 @@ export const Wrapper = ({children}: WrapperProps) => {
     return (
         <aside
             className={cn(
-                "fixed left-0 flex flex-col w-60 h-full bg-background border-r border-[#2D2E35] z-50",
+                "fixed left-0 flex flex-col w-60 h-full backdrop-blur-md border-r z-50 transition-all duration-300",
                 collapsed && "w-[70px]"
             )}
+            style={{backgroundColor: 'hsl(var(--sidebar) / 0.95)', borderColor: 'hsl(var(--sidebar-border))'}}
         >
             {children}
         </aside>

@@ -13,17 +13,27 @@ const KeysPage = async () => {
     }
 
     return (
-        <div className="pl-6">
-            <div className="flex items-center justify-between mb-4">
-                <h1 className="text-2xl font-bold">
-                    Keys & URLs
-                </h1>
-                <ConnectModal />
+        <div className="space-y-6">
+            <div className="bg-card/80 backdrop-blur-sm border border-border/50 rounded-xl p-6 shadow-lg">
+                <div className="flex items-center justify-between">
+                    <div className="space-y-2">
+                        <h1 className="text-2xl font-bold bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent">
+                            Keys & URLs
+                        </h1>
+                        <p className="text-muted-foreground">
+                            Manage your streaming credentials and server settings
+                        </p>
+                    </div>
+                    <ConnectModal />
+                </div>
             </div>
-            <div
-                className="space-y-4">
-                <UrlCard value={stream.serverUrl} />
-                <KeyCard value={stream.streamKey} />
+            <div className="grid gap-6 md:grid-cols-2">
+                <div className="bg-card/80 backdrop-blur-sm border border-border/50 rounded-xl shadow-lg overflow-hidden">
+                    <UrlCard value={stream.serverUrl} />
+                </div>
+                <div className="bg-card/80 backdrop-blur-sm border border-border/50 rounded-xl shadow-lg overflow-hidden">
+                    <KeyCard value={stream.streamKey} />
+                </div>
             </div>
         </div>
     )

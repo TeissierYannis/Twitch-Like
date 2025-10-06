@@ -25,47 +25,42 @@ export const NavItem = ({
     return (
         <Button
             className={cn(
-                "w-full h-12",
+                "w-full h-12 transition-all duration-200",
                 collapsed ? "justify-center" : "justify-start",
-                isActive && "bg-accent"
+                isActive 
+                    ? "bg-sidebar-accent text-sidebar-accent-foreground border border-sidebar-primary/20 shadow-sm"
+                    : "hover:bg-sidebar-accent/50 text-sidebar-foreground"
             )}
             variant="ghost"
             asChild
         >
-            <Link
-                href={href}
-            >
-                <div
-                    className="flex items-center gap-x-4">
+            <Link href={href}>
+                <div className="flex items-center gap-x-3">
                     <Icon
                         className={cn(
-                            "h-4 w-4",
-                            collapsed ? "mr-0" : "mr-2"
-                        )}/>
+                            "h-5 w-5 transition-colors",
+                            collapsed ? "mr-0" : "mr-0",
+                            isActive ? "text-sidebar-primary" : ""
+                        )}
+                    />
                     {!collapsed && (
-                        <span>
+                        <span className="font-medium">
                             {label}
                         </span>
                     )}
                 </div>
             </Link>
         </Button>
-
     )
 }
 
 export const NavItemSkeleton = () => {
     return (
-        <li
-            className="flex items-center gap-x-4 px-3 py-2"
-        >
-            <Skeleton
-                className="min-h-[48px] min-w-[48px] rounded-md"
-            />
+        <li className="flex items-center gap-x-3 px-3 py-2">
+            <Skeleton className="min-h-[48px] min-w-[48px] rounded-md bg-sidebar-accent/30" />
             <div className="flex-1 hidden lg:block">
-                <Skeleton className="h-6"/>
+                <Skeleton className="h-6 bg-sidebar-accent/20" />
             </div>
-
         </li>
     )
 }
