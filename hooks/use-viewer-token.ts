@@ -23,7 +23,6 @@ export const useViewerToken = (hostIdentity: string) => {
                     setName(decoded.name);
                 }
             } catch (error) {
-                console.log(error);
                 toast.error("Something went wrong! Error creating token");
             }
         };
