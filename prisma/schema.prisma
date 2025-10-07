@@ -29,6 +29,7 @@ model User {
   stream Stream?
 
   notifications Notification[]
+  dailyStats    DailyStats[]
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -50,6 +51,9 @@ model Stream {
 
   userId String @unique
   user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  streamMetrics  StreamMetrics[]
+  streamSessions StreamSession[]
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -104,4 +108,56 @@ model Notification {
   @@index([userId])
   @@index([userId, read])
   @@index([createdAt])
+}
+
+// Analytics models
+model StreamMetrics {
+  id           String   @id @default(uuid())
+  streamId     String
+  stream       Stream   @relation(fields: [streamId], references: [id], onDelete: Cascade)
+
+  // Real-time metrics
+  viewerCount  Int      @default(0)
+  chatMessages Int      @default(0)
+
+  // Timestamp
+  recordedAt   DateTime @default(now())
+
+  @@index([streamId, recordedAt])
+  @@index([recordedAt])
+}
+
+model StreamSession {
+  id             String    @id @default(uuid())
+  streamId       String
+  stream         Stream    @relation(fields: [streamId], references: [id], onDelete: Cascade)
+
+  // Session statistics
+  startedAt      DateTime  @default(now())
+  endedAt        DateTime?
+  peakViewers    Int       @default(0)
+  totalMessages  Int       @default(0)
+  averageViewers Float     @default(0)
+  duration       Int?      // in seconds
+  title          String?   @db.Text
+
+  @@index([streamId])
+  @@index([startedAt])
+}
+
+model DailyStats {
+  id             String   @id @default(uuid())
+  userId         String
+  user           User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  date           DateTime @db.Date
+  newFollowers   Int      @default(0)
+  totalViews     Int      @default(0)
+  streamDuration Int      @default(0) // in seconds
+  peakViewers    Int      @default(0)
+  totalMessages  Int      @default(0)
+
+  @@unique([userId, date])
+  @@index([userId, date])
+  @@index([date])
 }

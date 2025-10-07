@@ -3,6 +3,7 @@ import { WebhookReceiver } from "livekit-server-sdk";
 
 import { db } from "@/lib/db";
 import { notificationHelpers } from "@/lib/notification-service";
+import { analyticsService } from "@/lib/analytics-service";
 
 const receiver = new WebhookReceiver(
     process.env.LIVEKIT_API_KEY!,
@@ -43,6 +44,15 @@ export async function POST(req: Request) {
             },
         });
 
+        // Start analytics session
+        if (stream) {
+            try {
+                await analyticsService.startSession(stream.id, stream.name);
+            } catch (error) {
+                console.error("Failed to start analytics session:", error);
+            }
+        }
+
         // Notifier tous les followers que le stream a commencé
         if (stream?.user) {
             const notificationPromises = stream.user.followedBy.map((follow) =>
@@ -80,6 +90,18 @@ export async function POST(req: Request) {
             },
         });
 
+        // End analytics session
+        if (stream) {
+            try {
+                const activeSession = await analyticsService.getActiveSession(stream.id);
+                if (activeSession) {
+                    await analyticsService.endSession(activeSession.id);
+                }
+            } catch (error) {
+                console.error("Failed to end analytics session:", error);
+            }
+        }
+
         // Notifier tous les followers que le stream s'est terminé
         if (stream?.user) {
             const notificationPromises = stream.user.followedBy.map((follow) =>
@@ -92,6 +114,45 @@ export async function POST(req: Request) {
             );
 
             await Promise.allSettled(notificationPromises);
+        }
+    }
+
+    // Track participant joined/left for viewer count
+    if (event.event === "participant_joined" && event.participant) {
+        const room = event.room;
+        if (room) {
+            try {
+                const stream = await db.stream.findFirst({
+                    where: { ingressId: room.name },
+                });
+
+                if (stream) {
+                    // Record metrics snapshot
+                    const participantCount = event.numParticipants || 1;
+                    await analyticsService.recordMetrics(stream.id, participantCount);
+                }
+            } catch (error) {
+                console.error("Failed to record viewer metrics:", error);
+            }
+        }
+    }
+
+    if (event.event === "participant_left" && event.participant) {
+        const room = event.room;
+        if (room) {
+            try {
+                const stream = await db.stream.findFirst({
+                    where: { ingressId: room.name },
+                });
+
+                if (stream) {
+                    // Record metrics snapshot
+                    const participantCount = Math.max((event.numParticipants || 1) - 1, 0);
+                    await analyticsService.recordMetrics(stream.id, participantCount);
+                }
+            } catch (error) {
+                console.error("Failed to record viewer metrics:", error);
+            }
         }
     }
 

@@ -2,7 +2,7 @@
 
 import {usePathname} from "next/navigation";
 import {useUser} from "@clerk/nextjs";
-import {Fullscreen, KeyRound, MessageSquare, Users} from "lucide-react";
+import {Fullscreen, KeyRound, MessageSquare, Users, BarChart3} from "lucide-react";
 import {NavItem, NavItemSkeleton} from "@/app/(dashboard)/u/[username]/_components/sidebar/nav-item";
 
 export const Navigation = () => {
@@ -29,13 +29,18 @@ export const Navigation = () => {
             label: "Community",
             href: `/u/${user?.username}/community`,
             icon: Users
+        },
+        {
+            label: "Analytics",
+            href: `/u/${user?.username}/analytics`,
+            icon: BarChart3
         }
     ]
 
     if (!user?.username) {
         return (
             <ul className="space-y-2">
-                {[...Array(4)].map((_, i) => (
+                {[...Array(5)].map((_, i) => (
                     <NavItemSkeleton key={i}/>
                 ))}
             </ul>
