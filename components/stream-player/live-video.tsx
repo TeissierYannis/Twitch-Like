@@ -5,6 +5,7 @@ import { useEventListener } from "usehooks-ts";
 
 import { FullscreenControl } from "./fullscreen-control";
 import { VolumeControl } from "./volume-control";
+import { TheaterControl } from "./theater-control";
 
 export function LiveVideo({ participant }: { participant: Participant }) {
     const videoRef = useRef<HTMLVideoElement>(null);
@@ -69,10 +70,13 @@ export function LiveVideo({ participant }: { participant: Participant }) {
                         value={volume}
                         onToggle={toggleMute}
                     />
-                    <FullscreenControl
-                        isFullscreen={isFullscreen}
-                        onToggle={toggleFullscreen}
-                    />
+                    <div className="flex items-center gap-2">
+                        <TheaterControl />
+                        <FullscreenControl
+                            isFullscreen={isFullscreen}
+                            onToggle={toggleFullscreen}
+                        />
+                    </div>
                 </div>
             </div>
         </div>

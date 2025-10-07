@@ -5,6 +5,7 @@ import { LiveKitRoom } from "@livekit/components-react";
 
 import { useViewerToken } from "@/hooks/use-viewer-token";
 import { useChatSidebar } from "@/store/use-chat-sidebar";
+import { useTheaterMode } from "@/hooks/use-theater-mode";
 import { cn } from "@/lib/utils";
 
 import { ChatToggle } from "./chat-toggle";
@@ -13,6 +14,7 @@ import { AboutCard } from "./about-card";
 import { Video, VideoSkeleton } from "./video";
 import { Chat, ChatSkeleton } from "./chat";
 import { Header, HeaderSkeleton } from "./header";
+import { TheaterPlayer } from "./theater-player";
 
 type CustomStream = {
     id: string;
@@ -46,12 +48,29 @@ export function StreamPlayer({
 }) {
     const { identity, name, token } = useViewerToken(user.id);
     const { collapsed } = useChatSidebar((state) => state);
+    const { isTheaterMode } = useTheaterMode();
 
     if (!token || !identity || !name) {
         return <StreamPlayerSkeleton />;
     }
 
     return (
+        <>
+        {isTheaterMode && (
+            <LiveKitRoom
+                token={token}
+                serverUrl={process.env.NEXT_PUBLIC_LIVEKIT_WS_URL}
+            >
+                <TheaterPlayer
+                    user={user}
+                    stream={stream}
+                    isFollowing={isFollowing}
+                    identity={identity}
+                    name={name}
+                />
+            </LiveKitRoom>
+        )}
+
         <div className="min-h-screen bg-gradient-to-br from-background to-muted/10">
             {collapsed && (
                 <div className="hidden lg:block fixed top-[100px] right-2 z-50">
@@ -111,6 +130,7 @@ export function StreamPlayer({
                 </div>
             </LiveKitRoom>
         </div>
+        </>
     );
 }
 
