@@ -1,8 +1,8 @@
 import { cn } from "@/lib/utils";
-import { forwardRef } from "react";
+import { forwardRef, ElementType } from "react";
 
 interface GradientTextProps extends React.HTMLAttributes<HTMLElement> {
-  as?: keyof JSX.IntrinsicElements;
+  as?: ElementType;
   variant?: "primary" | "accent" | "rainbow" | "sunset" | "ocean" | "forest";
   animated?: boolean;
 }

@@ -1,7 +1,12 @@
 import {db} from "@/lib/db";
 import {getSelf} from "@/lib/auth-service";
+import { User } from "@prisma/client";
 
-export const getRecommended = async () => {
+export type UserWithStream = User & {
+    stream: { isLive: boolean; } | null;
+};
+
+export const getRecommended = async (): Promise<UserWithStream[]> => {
     let userId;
 
     try {
@@ -68,5 +73,5 @@ export const getRecommended = async () => {
         });
     }
 
-    return users;
+    return users as unknown as UserWithStream[];
 }

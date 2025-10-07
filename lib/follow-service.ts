@@ -1,5 +1,6 @@
 import {db} from "@/lib/db"
 import {getSelf} from "@/lib/auth-service";
+import {notificationHelpers} from "@/lib/notification-service";
 
 export const getFollowedUsers = async () => {
     try {
@@ -100,6 +101,18 @@ export const followUser = async (id: string) => {
             follower: true
         }
     });
+
+    // Créer une notification pour l'utilisateur suivi
+    try {
+        await notificationHelpers.createFollowNotification(
+            otherUser.id,
+            self.username,
+            self.imageUrl
+        );
+    } catch (error) {
+        console.error("Failed to create follow notification:", error);
+        // Ne pas bloquer le follow si la notification échoue
+    }
 
     return follow;
 }

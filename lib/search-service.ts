@@ -1,7 +1,12 @@
 import { db } from "@/lib/db";
 import { getSelf } from "@/lib/auth-service";
+import { Stream, User } from "@prisma/client";
 
-export const getSearch = async (term?: string) => {
+export type SearchResult = Pick<Stream, "id" | "name" | "isLive" | "thumbnailUrl" | "updatedAt"> & {
+    user: User;
+};
+
+export const getSearch = async (term?: string): Promise<SearchResult[]> => {
     let userId;
 
     try {
@@ -80,5 +85,5 @@ export const getSearch = async (term?: string) => {
         });
     }
 
-    return streams;
+    return streams as unknown as SearchResult[];
 };

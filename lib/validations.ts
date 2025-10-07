@@ -99,7 +99,7 @@ export const analyticsQuerySchema = z.object({
 // Webhook schemas
 export const webhookEventSchema = z.object({
   type: z.enum(["stream.started", "stream.ended", "user.followed", "user.unfollowed"]),
-  data: z.record(z.any()),
+  data: z.record(z.string(), z.any()),
   timestamp: z.string().datetime(),
 });
 
@@ -136,7 +136,7 @@ export function validateInput<T>(
     return { success: true, data: validated };
   } catch (error) {
     if (error instanceof z.ZodError) {
-      const errors = error.errors.map((err) => {
+      const errors = error.issues.map((err) => {
         const path = err.path.join(".");
         return path ? `${path}: ${err.message}` : err.message;
       });

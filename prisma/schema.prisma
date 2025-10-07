@@ -28,6 +28,8 @@ model User {
 
   stream Stream?
 
+  notifications Notification[]
+
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 }
@@ -83,4 +85,23 @@ model Block {
   @@unique([blockerId, blockedId])
   @@index([blockerId])
   @@index([blockedId])
+}
+
+model Notification {
+  id      String @id @default(uuid())
+  userId  String
+  type    String // "follow", "stream_start", "chat_mention", "stream_end"
+  title   String
+  message String @db.Text
+  data    Json?  // données additionnelles (userId, streamId, etc.)
+  read    Boolean @default(false)
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([userId])
+  @@index([userId, read])
+  @@index([createdAt])
 }

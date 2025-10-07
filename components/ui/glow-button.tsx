@@ -2,13 +2,13 @@ import { cn } from "@/lib/utils";
 import { forwardRef } from "react";
 import { Button, ButtonProps } from "@/components/ui/button";
 
-interface GlowButtonProps extends ButtonProps {
+interface GlowButtonProps extends Omit<ButtonProps, "variant"> {
   glowIntensity?: "subtle" | "medium" | "strong";
   animated?: boolean;
 }
 
 const GlowButton = forwardRef<HTMLButtonElement, GlowButtonProps>(
-  ({ className, glowIntensity = "medium", animated = false, children, ...props }, ref) => {
+  ({ className, glowIntensity = "medium", animated = false, ...props }, ref) => {
     return (
       <div className="relative group">
         {/* Glow effect */}
@@ -32,9 +32,7 @@ const GlowButton = forwardRef<HTMLButtonElement, GlowButtonProps>(
             className
           )}
           {...props}
-        >
-          {children}
-        </Button>
+        />
       </div>
     );
   }
@@ -42,4 +40,5 @@ const GlowButton = forwardRef<HTMLButtonElement, GlowButtonProps>(
 
 GlowButton.displayName = "GlowButton";
 
-export { GlowButton, type GlowButtonProps };
+export { GlowButton };
+export type { GlowButtonProps };

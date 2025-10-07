@@ -1,7 +1,12 @@
 import { db } from "@/lib/db";
 import { getSelf } from "@/lib/auth-service";
+import { Stream, User } from "@prisma/client";
 
-export const getStreams = async () => {
+export type StreamWithUser = Pick<Stream, "id" | "name" | "isLive" | "thumbnailUrl"> & {
+    user: User;
+};
+
+export const getStreams = async (): Promise<StreamWithUser[]> => {
     let userId;
 
     try {
@@ -48,5 +53,5 @@ export const getStreams = async () => {
         });
     }
 
-    return streams;
+    return streams as unknown as StreamWithUser[];
 };

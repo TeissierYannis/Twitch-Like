@@ -16,11 +16,11 @@ export async function POST(req: NextRequest) {
                 await db.user.create({
                     data: {
                         externalUserId: evt.data.id,
-                        username: evt.data.username,
-                        imageUrl: evt.data.image_url,
+                        username: evt.data.username || "",
+                        imageUrl: evt.data.image_url || "",
                         stream: {
                             create: {
-                                name: `${evt.data.username}'s stream`
+                                name: `${evt.data.username || "User"}'s stream`
                             }
                         }
                     }
@@ -30,8 +30,8 @@ export async function POST(req: NextRequest) {
                 await db.user.update({
                     where: {externalUserId: evt.data.id},
                     data: {
-                        username: evt.data.username,
-                        imageUrl: evt.data.image_url,
+                        username: evt.data.username || "",
+                        imageUrl: evt.data.image_url || "",
                     }
                 });
                 break;

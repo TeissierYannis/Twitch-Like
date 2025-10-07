@@ -5,7 +5,7 @@ import {Sidebar} from "@/app/(dashboard)/u/[username]/_components/sidebar";
 import {Container} from "@/app/(dashboard)/u/[username]/_components/sidebar/container";
 
 interface CreatorLayoutProps {
-    params: { username: string };
+    params: Promise<{ username: string }>;
     children: React.ReactNode;
 }
 

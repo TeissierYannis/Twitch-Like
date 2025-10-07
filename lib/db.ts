@@ -2,13 +2,15 @@
 import { PrismaClient } from '@prisma/client'
 import { withAccelerate } from '@prisma/extension-accelerate'
 
-const globalForPrisma = globalThis as unknown as { prisma?: PrismaClient };
+const globalForPrisma = globalThis as unknown as { prisma?: ReturnType<typeof createPrismaClient> };
+
+const createPrismaClient = () => {
+    return new PrismaClient().$extends(withAccelerate());
+};
 
 export const db =
     globalForPrisma.prisma ??
-    new PrismaClient({
-
-    }).$extends(withAccelerate());
+    createPrismaClient();
 
 // Ensure the Prisma Client is a singleton in development
 

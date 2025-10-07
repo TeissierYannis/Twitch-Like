@@ -19,7 +19,7 @@ const IngressInputLocal = {
     WHIP_INPUT: 1,
 } as const;
 
-type IngressType = `${number}`; // on stocke comme string pour Select
+type IngressType = string; // on stocke comme string pour Select
 
 const RTMP = String(IngressInputLocal.RTMP_INPUT);
 const WHIP = String(IngressInputLocal.WHIP_INPUT);
@@ -27,7 +27,7 @@ const WHIP = String(IngressInputLocal.WHIP_INPUT);
 export const ConnectModal = () => {
     const closeRef = useRef<ComponentRef<"button">>(null);
     const [isPending, startTransition] = useTransition();
-    const [ingressType, setIngressType] = useState<IngressType>(RTMP);
+    const [ingressType, setIngressType] = useState<string>(RTMP);
 
     const onSubmit = () => {
         startTransition(() => {

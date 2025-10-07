@@ -40,7 +40,7 @@ export class RateLimiter {
 
     // Default: use IP address
     const forwarded = req.headers.get("x-forwarded-for");
-    const ip = forwarded ? forwarded.split(",")[0] : req.ip || "unknown";
+    const ip = forwarded ? forwarded.split(",")[0] : "unknown";
     return `rate_limit:${ip}`;
   }
 
@@ -86,22 +86,22 @@ export const rateLimiters = {
   // General API requests
   api: new RateLimiter({
     windowMs: 15 * 60 * 1000, // 15 minutes
-    maxRequests: 100,
+    maxRequests: 1000,
   }),
 
   // Authentication endpoints
   auth: new RateLimiter({
     windowMs: 15 * 60 * 1000, // 15 minutes
-    maxRequests: 5,
+    maxRequests: 50,
   }),
 
   // Chat messages
   chat: new RateLimiter({
     windowMs: 60 * 1000, // 1 minute
-    maxRequests: 30,
+    maxRequests: 60,
     keyGenerator: (req) => {
       // Use user ID for chat rate limiting
-      const userId = req.headers.get("x-user-id") || req.ip || "unknown";
+      const userId = req.headers.get("x-user-id") || "unknown";
       return `chat:${userId}`;
     },
   }),
@@ -109,15 +109,15 @@ export const rateLimiters = {
   // Search requests
   search: new RateLimiter({
     windowMs: 60 * 1000, // 1 minute
-    maxRequests: 20,
+    maxRequests: 100,
   }),
 
   // File uploads
   upload: new RateLimiter({
     windowMs: 60 * 60 * 1000, // 1 hour
-    maxRequests: 10,
+    maxRequests: 50,
     keyGenerator: (req) => {
-      const userId = req.headers.get("x-user-id") || req.ip || "unknown";
+      const userId = req.headers.get("x-user-id") || "unknown";
       return `upload:${userId}`;
     },
   }),
@@ -125,9 +125,9 @@ export const rateLimiters = {
   // Follow/unfollow actions
   follow: new RateLimiter({
     windowMs: 60 * 1000, // 1 minute
-    maxRequests: 10,
+    maxRequests: 30,
     keyGenerator: (req) => {
-      const userId = req.headers.get("x-user-id") || req.ip || "unknown";
+      const userId = req.headers.get("x-user-id") || "unknown";
       return `follow:${userId}`;
     },
   }),
