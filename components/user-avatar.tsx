@@ -67,7 +67,7 @@ export const UserAvatar = ({
     )
 }
 
-interface UserAvatarSkeletonProps extends VariantProps<typeof avatarSize> {};
+type UserAvatarSkeletonProps = VariantProps<typeof avatarSize>;
 
 export const UserAvatarSkeleton = ({size}: UserAvatarSkeletonProps) => {
     return (

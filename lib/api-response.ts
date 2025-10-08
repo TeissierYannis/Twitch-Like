@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { z } from "zod";
 
-interface ApiSuccessResponse<T = any> {
+interface ApiSuccessResponse<T = unknown> {
   success: true;
   data: T;
   meta?: {
@@ -9,7 +9,8 @@ interface ApiSuccessResponse<T = any> {
     limit?: number;
     total?: number;
     hasMore?: boolean;
-    [key: string]: any;
+    totalPages?: number;
+    [key: string]: number | boolean | undefined;
   };
 }
 
@@ -20,7 +21,7 @@ interface ApiErrorResponse {
   code?: string;
 }
 
-export type ApiResponse<T = any> = ApiSuccessResponse<T> | ApiErrorResponse;
+export type ApiResponse<T = unknown> = ApiSuccessResponse<T> | ApiErrorResponse;
 
 // Success response helper
 export function createSuccessResponse<T>(

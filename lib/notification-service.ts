@@ -7,7 +7,7 @@ interface CreateNotificationData {
   type: NotificationType;
   title: string;
   message: string;
-  data?: Record<string, any>;
+  data?: Record<string, string | number | boolean | null>;
 }
 
 export const notificationService = {

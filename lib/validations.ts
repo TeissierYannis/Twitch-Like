@@ -128,8 +128,7 @@ export type AnalyticsQueryInput = z.infer<typeof analyticsQuerySchema>;
 // Validation middleware helper
 export function validateInput<T>(
   schema: z.ZodSchema<T>,
-  data: unknown,
-  options?: { stripUnknown?: boolean }
+  data: unknown
 ): { success: true; data: T } | { success: false; errors: string[] } {
   try {
     const validated = schema.parse(data);
@@ -164,7 +163,7 @@ export const businessValidations = {
   },
 
   // Check if user can perform action (rate limiting at business level)
-  canUserPerformAction: (userId: string, action: string) => {
+  canUserPerformAction: () => {
     // This would check user permissions, subscription status, etc.
     return true; // Placeholder
   },
