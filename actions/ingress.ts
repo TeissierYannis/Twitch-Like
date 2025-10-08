@@ -1,96 +1,56 @@
 "use server";
 
-import {
-    IngressAudioEncodingPreset,
-    IngressAudioOptions,
-    IngressClient,
-    IngressInput,
-    IngressVideoEncodingPreset,
-    IngressVideoOptions,
-    RoomServiceClient,
-    TrackSource,
-    type CreateIngressOptions,
-} from "livekit-server-sdk";
 import { revalidatePath } from "next/cache";
+import { v4 as uuid } from "uuid";
 
 import { db } from "@/lib/db";
 import { getSelf } from "@/lib/auth-service";
 
-const LK_HOST = process.env.LIVEKIT_API_URL ?? process.env.LIVEKIT_URL ?? "";
-const LK_KEY = process.env.LIVEKIT_API_KEY ?? "";
-const LK_SECRET = process.env.LIVEKIT_API_SECRET ?? "";
+const MEDIAMTX_RTMP_URL = process.env.MEDIAMTX_RTMP_URL ?? "";
 
-if (!/^https?:\/\//.test(LK_HOST)) {
-    throw new Error("LIVEKIT_API_URL doit commencer par http(s)://");
+if (!MEDIAMTX_RTMP_URL) {
+    throw new Error("MEDIAMTX_RTMP_URL est manquant dans les variables d'environnement");
 }
-if (!LK_KEY || !LK_SECRET) {
-    throw new Error("LIVEKIT_API_KEY ou LIVEKIT_API_SECRET manquant.");
-}
-
-const roomService = new RoomServiceClient(LK_HOST, LK_KEY, LK_SECRET);
-const ingressClient = new IngressClient(LK_HOST, LK_KEY, LK_SECRET);
 
 export const resetIngresses = async (hostId: string) => {
-    const ingresses = await ingressClient.listIngress({ roomName: hostId });
-    const rooms = await roomService.listRooms([hostId]);
-
-    for (const room of rooms) await roomService.deleteRoom(room.name);
-    for (const ingress of ingresses) {
-        if (ingress.ingressId) await ingressClient.deleteIngress(ingress.ingressId);
-    }
+    // Avec MediaMTX, pas besoin de supprimer des ressources côté serveur
+    // On réinitialise juste les données dans la base
+    await db.stream.update({
+        where: { userId: hostId },
+        data: {
+            ingressId: null,
+            serverUrl: null,
+            streamKey: null,
+        },
+    });
 };
 
-export const createIngress = async (ingressType: IngressInput) => {
+export const createIngress = async (ingressType: "RTMP" | "WHIP" = "RTMP") => {
     const self = await getSelf();
     await resetIngresses(self.id);
 
-    const options: CreateIngressOptions = {
-        name: self.username,
-        roomName: self.id,
-        participantName: self.username,
-        participantIdentity: self.id,
-    };
+    // URL de base du serveur RTMP avec /app
+    // OBS va concaténer: rtmp://server:1935/app + / + live/username = rtmp://server:1935/app/live/username
+    const serverUrl = `${MEDIAMTX_RTMP_URL}/app`;
 
-    if (ingressType === IngressInput.WHIP_INPUT) {
-        options.enableTranscoding = false;
-    } else {
-        options.video = new IngressVideoOptions({
-            source: TrackSource.CAMERA,
-            encodingOptions: {
-                case: "preset",
-                value: IngressVideoEncodingPreset.H264_1080P_30FPS_3_LAYERS,
-            },
-        });
-        options.audio = new IngressAudioOptions({
-            source: TrackSource.MICROPHONE,
-            encodingOptions: {
-                case: "preset",
-                value: IngressAudioEncodingPreset.OPUS_STEREO_96KBPS,
-            },
-        });
-    }
+    // Le stream key est le chemin : live/username
+    const streamKey = `live/${self.username}`;
 
-    const info = await ingressClient.createIngress(ingressType, options);
-
-    if (!info || !info.url || !info.streamKey) {
-        throw new Error("Failed to create ingress");
-    }
-
+    // Sauvegarder dans la base
     await db.stream.update({
         where: { userId: self.id },
         data: {
-            ingressId: info.ingressId,
-            serverUrl: info.url,
-            streamKey: info.streamKey,
+            ingressId: self.username, // On stocke le username comme ingressId
+            serverUrl: serverUrl,
+            streamKey: streamKey, // OBS va concaténer serverUrl + / + streamKey
         },
     });
 
     revalidatePath(`/u/${self.username}/keys`);
 
-    // ⬇️ IMPORTANT: on ne renvoie qu'un objet “plain” (ou rien du tout)
     return {
-        ingressId: info.ingressId ?? null,
-        url: info.url ?? null,
-        streamKey: info.streamKey ?? null,
+        ingressId: self.username,
+        url: serverUrl,
+        streamKey: streamKey,
     };
 };

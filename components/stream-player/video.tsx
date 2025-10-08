@@ -1,12 +1,6 @@
 "use client";
 
-import React from "react";
-import { ConnectionState, Track } from "livekit-client";
-import {
-    useConnectionState,
-    useRemoteParticipant,
-    useTracks,
-} from "@livekit/components-react";
+import React, { useState, useEffect } from "react";
 
 import { Skeleton } from "@/components/ui/skeleton";
 
@@ -21,21 +15,35 @@ export function Video({
     hostName: string;
     hostIdentity: string;
 }) {
-    const connectionState = useConnectionState();
-    const participant = useRemoteParticipant(hostIdentity);
-    const tracks = useTracks([
-        Track.Source.Camera,
-        Track.Source.Microphone,
-    ]).filter((track) => track.participant.identity === hostIdentity);
+    const [isLive, setIsLive] = useState<boolean | null>(null);
+
+    useEffect(() => {
+        // Vérifier si le stream est en ligne
+        const checkStreamStatus = async () => {
+            try {
+                const hlsUrl = `${process.env.NEXT_PUBLIC_MEDIAMTX_HLS_URL}/app/live/${hostName}/index.m3u8`;
+                const response = await fetch(hlsUrl, { method: "GET" });
+                setIsLive(response.ok);
+            } catch (error) {
+                setIsLive(false);
+            }
+        };
+
+        checkStreamStatus();
+
+        // Vérifier toutes les 10 secondes
+        const interval = setInterval(checkStreamStatus, 10000);
+        return () => clearInterval(interval);
+    }, [hostName]);
 
     let content;
 
-    if (!participant && connectionState === ConnectionState.Connected) {
-        content = <OfflineVideo username={hostName} />;
-    } else if (!participant || tracks.length === 0) {
-        content = <LoadingVideo label={connectionState} />;
+    if (isLive === null) {
+        content = <LoadingVideo label="Checking stream status..." />;
+    } else if (isLive) {
+        content = <LiveVideo username={hostName} />;
     } else {
-        content = <LiveVideo participant={participant} />;
+        content = <OfflineVideo username={hostName} />;
     }
 
     return <div className="aspect-video border-b group relative">{content}</div>;

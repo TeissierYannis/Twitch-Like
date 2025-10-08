@@ -1,16 +1,9 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
-import { RoomServiceClient } from "livekit-server-sdk";
 
 import { blockUser, unblockUser } from "@/lib/block-service";
 import { getSelf } from "@/lib/auth-service";
-
-const roomService = new RoomServiceClient(
-    process.env.LIVEKIT_API_URL!,
-    process.env.LIVEKIT_API_KEY,
-    process.env.LIVEKIT_API_SECRET
-);
 
 export const onBlock = async (id: string) => {
     const self = await getSelf();
@@ -23,11 +16,8 @@ export const onBlock = async (id: string) => {
         // this means user is guest
     }
 
-    try {
-        await roomService.removeParticipant(self.id, id);
-    } catch {
-        // this means user not in the room
-    }
+    // Avec MediaMTX, pas besoin de gérer les participants côté serveur
+    // Le chat sera géré différemment
 
     revalidatePath(`/u/${self.username}/community`);
 

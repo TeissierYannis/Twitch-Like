@@ -1,9 +1,7 @@
 "use client";
 
 import React from "react";
-import { LiveKitRoom } from "@livekit/components-react";
 
-import { useViewerToken } from "@/hooks/use-viewer-token";
 import { useChatSidebar } from "@/store/use-chat-sidebar";
 import { useTheaterMode } from "@/hooks/use-theater-mode";
 import { cn } from "@/lib/utils";
@@ -46,29 +44,17 @@ export function StreamPlayer({
     stream: CustomStream;
     isFollowing: boolean;
 }) {
-    const { identity, name, token } = useViewerToken(user.id);
     const { collapsed } = useChatSidebar((state) => state);
     const { isTheaterMode } = useTheaterMode();
-
-    if (!token || !identity || !name) {
-        return <StreamPlayerSkeleton />;
-    }
 
     return (
         <>
         {isTheaterMode && (
-            <LiveKitRoom
-                token={token}
-                serverUrl={process.env.NEXT_PUBLIC_LIVEKIT_WS_URL}
-            >
-                <TheaterPlayer
-                    user={user}
-                    stream={stream}
-                    isFollowing={isFollowing}
-                    identity={identity}
-                    name={name}
-                />
-            </LiveKitRoom>
+            <TheaterPlayer
+                user={user}
+                stream={stream}
+                isFollowing={isFollowing}
+            />
         )}
 
         <div className="min-h-screen bg-gradient-to-br from-background to-muted/10">
@@ -79,14 +65,10 @@ export function StreamPlayer({
                     </div>
                 </div>
             )}
-            <LiveKitRoom
-                token={token}
-                serverUrl={process.env.NEXT_PUBLIC_LIVEKIT_WS_URL}
-                className={cn(
-                    "grid grid-cols-1 lg:gap-6 lg:grid-cols-3 xl:grid-cols-3 2xl:grid-cols-6 h-full p-4 lg:p-6",
-                    collapsed && "lg:grid-cols-2 xl:grid-cols-2 2xl:grid-cols-2"
-                )}
-            >
+            <div className={cn(
+                "grid grid-cols-1 lg:gap-6 lg:grid-cols-3 xl:grid-cols-3 2xl:grid-cols-6 h-full p-4 lg:p-6",
+                collapsed && "lg:grid-cols-2 xl:grid-cols-2 2xl:grid-cols-2"
+            )}>
                 <div className="space-y-6 col-span-1 lg:col-span-2 xl:col-span-2 2xl:col-span-5 lg:overflow-y-auto hidden-scrollbar pb-10">
                     <div className="rounded-xl overflow-hidden border border-border/50 shadow-lg">
                         <Video hostName={user.username} hostIdentity={user.id} />
@@ -98,19 +80,20 @@ export function StreamPlayer({
                             hostIdentity={user.id}
                             isFollowing={isFollowing}
                             name={stream.name}
-                            viewerIdentity={identity}
+                            viewerIdentity={user.id}
+                            streamId={stream.id}
                         />
                     </div>
                     <InfoCard
                         hostIdentity={user.id}
-                        viewerIdentity={identity}
+                        viewerIdentity={user.id}
                         name={stream.name}
                         thumbnailUrl={stream.thumbnailUrl}
                     />
                     <AboutCard
                         hostName={user.username}
                         hostIdentity={user.id}
-                        viewerIdentity={identity}
+                        viewerIdentity={user.id}
                         bio={user.bio}
                         followedByCount={user._count.followedBy}
                     />
@@ -118,17 +101,18 @@ export function StreamPlayer({
                 <div className={cn("col-span-1", collapsed && "hidden")}>
                     <div className="bg-card/80 backdrop-blur-sm border border-border/50 rounded-xl shadow-lg overflow-hidden h-full">
                         <Chat
-                            viewerName={name}
+                            viewerName={user.username}
                             hostName={user.username}
                             hostIdentity={user.id}
                             isFollowing={isFollowing}
                             isChatEnabled={stream.isChatEnabled}
                             isChatDelayed={stream.isChatDelayed}
                             isChatFollowersOnly={stream.isChatFollowersOnly}
+                            streamId={stream.id}
                         />
                     </div>
                 </div>
-            </LiveKitRoom>
+            </div>
         </div>
         </>
     );

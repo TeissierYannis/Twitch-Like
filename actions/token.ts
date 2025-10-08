@@ -1,7 +1,6 @@
 "use server";
 
 import { v4 } from "uuid";
-import { AccessToken } from "livekit-server-sdk";
 
 import { getSelf } from "@/lib/auth-service";
 import { getUserById } from "@/lib/user-service";
@@ -30,23 +29,10 @@ export const createViewerToken = async (hostIdentity: string) => {
         throw new Error("User is blocked");
     }
 
-    const isHost = self.id === host.id;
-
-    const token = new AccessToken(
-        process.env.LIVEKIT_API_KEY,
-        process.env.LIVEKIT_API_SECRET,
-        {
-            identity: isHost ? `host-${self.id}` : self.id,
-            name: self.username,
-        }
-    );
-
-    token.addGrant({
-        room: host.id,
-        roomJoin: true,
-        canPublish: false,
-        canPublishData: true,
-    });
-
-    return await Promise.resolve(token.toJwt());
+    // Avec MediaMTX, pas besoin de token JWT
+    // On retourne juste les infos de l'utilisateur
+    return {
+        identity: self.id,
+        name: self.username,
+    };
 };

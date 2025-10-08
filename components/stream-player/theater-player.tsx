@@ -34,16 +34,12 @@ interface TheaterPlayerProps {
   user: CustomUser;
   stream: CustomStream;
   isFollowing: boolean;
-  identity: string;
-  name: string;
 }
 
 export function TheaterPlayer({
   user,
   stream,
   isFollowing,
-  identity,
-  name,
 }: TheaterPlayerProps) {
   const { isTheaterMode, disable } = useTheaterMode();
   const { collapsed } = useChatSidebar();
@@ -104,7 +100,7 @@ export function TheaterPlayer({
                 hostIdentity={user.id}
                 isFollowing={isFollowing}
                 name={stream.name}
-                viewerIdentity={identity}
+                viewerIdentity={user.id}
               />
             </div>
           </div>
@@ -114,7 +110,7 @@ export function TheaterPlayer({
             <div className="w-[380px] flex-shrink-0">
               <div className="bg-card/90 backdrop-blur-sm border border-border/50 rounded-xl shadow-2xl overflow-hidden h-full">
                 <Chat
-                  viewerName={name}
+                  viewerName={user.username}
                   hostName={user.username}
                   hostIdentity={user.id}
                   isFollowing={isFollowing}

@@ -2,12 +2,7 @@
 
 import React, { useEffect, useMemo, useState } from "react";
 import { useMediaQuery } from "usehooks-ts";
-import {
-    useChat,
-    useConnectionState,
-    useRemoteParticipant,
-} from "@livekit/components-react";
-import { ConnectionState } from "livekit-client";
+import Pusher from "pusher-js";
 
 import { ChatVariant, useChatSidebar } from "@/store/use-chat-sidebar";
 
@@ -15,6 +10,17 @@ import { ChatHeader, ChatHeaderSkeleton } from "./chat-header";
 import { ChatForm, ChatFormSkeleton } from "./chat-form";
 import { ChatList, ChatListSkeleton } from "./chat-list";
 import { ChatCommunity } from "./chat-community";
+
+interface ChatMessage {
+    id: string;
+    message: string;
+    timestamp: number;
+    from: {
+        name: string;
+        identity: string;
+        imageUrl?: string;
+    };
+}
 
 export function Chat({
                          hostName,
@@ -24,6 +30,7 @@ export function Chat({
                          isChatEnabled,
                          isChatDelayed,
                          isChatFollowersOnly,
+                         streamId,
                      }: {
     hostName: string;
     hostIdentity: string;
@@ -32,18 +39,50 @@ export function Chat({
     isChatEnabled: boolean;
     isChatDelayed: boolean;
     isChatFollowersOnly: boolean;
+    streamId: string;
 }) {
     const matches = useMediaQuery("(max-width: 1024px)");
     const { variant, onExpand } = useChatSidebar((state) => state);
-    const connectionState = useConnectionState();
-    const participant = useRemoteParticipant(hostIdentity);
+    const [isOnline, setIsOnline] = useState(false);
+    const [messages, setMessages] = useState<ChatMessage[]>([]);
+    const [value, setValue] = useState("");
 
-    const isOnline = participant && connectionState === ConnectionState.Connected;
+    // Vérifier si le stream est en ligne
+    useEffect(() => {
+        const checkStreamStatus = async () => {
+            try {
+                const hlsUrl = `${process.env.NEXT_PUBLIC_MEDIAMTX_HLS_URL}/app/live/${hostName}/index.m3u8`;
+                const response = await fetch(hlsUrl, { method: "GET" });
+                setIsOnline(response.ok);
+            } catch (error) {
+                setIsOnline(false);
+            }
+        };
+
+        checkStreamStatus();
+        const interval = setInterval(checkStreamStatus, 10000);
+        return () => clearInterval(interval);
+    }, [hostName]);
 
     const isHidden = !isChatEnabled || !isOnline;
 
-    const [value, setValue] = useState("");
-    const { chatMessages: messages, send } = useChat();
+    // Pusher setup for real-time chat
+    useEffect(() => {
+        const pusher = new Pusher(process.env.NEXT_PUBLIC_PUSHER_KEY!, {
+            cluster: process.env.NEXT_PUBLIC_PUSHER_CLUSTER!,
+        });
+
+        const channel = pusher.subscribe(`stream-${streamId}`);
+
+        channel.bind("chat-message", (data: ChatMessage) => {
+            setMessages((prevMessages) => [...prevMessages, data]);
+        });
+
+        return () => {
+            pusher.unsubscribe(`stream-${streamId}`);
+            pusher.disconnect();
+        };
+    }, [streamId]);
 
     useEffect(() => {
         if (matches) {
@@ -52,14 +91,28 @@ export function Chat({
     }, [matches, onExpand]);
 
     const reversedMessages = useMemo(() => {
-        return messages.sort((a, b) => b.timestamp - a.timestamp);
+        return [...messages].sort((a, b) => b.timestamp - a.timestamp);
     }, [messages]);
 
-    const onSubmit = () => {
-        if (!send) return;
+    const onSubmit = async () => {
+        if (!value.trim()) return;
 
-        send(value);
-        setValue("");
+        try {
+            await fetch("/api/chat/send", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                },
+                body: JSON.stringify({
+                    message: value,
+                    streamId,
+                }),
+            });
+
+            setValue("");
+        } catch (error) {
+            console.error("Failed to send message:", error);
+        }
     };
 
     const onChange = (value: string) => {
@@ -89,6 +142,7 @@ export function Chat({
                         hostName={hostName}
                         viewerName={viewerName}
                         isHidden={isHidden}
+                        streamId={streamId}
                     />
                 </>
             )}

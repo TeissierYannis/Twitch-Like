@@ -1,11 +1,8 @@
 "use client";
 
-import React from "react";
-import {
-    useParticipants,
-    useRemoteParticipant,
-} from "@livekit/components-react";
+import React, { useState, useEffect } from "react";
 import { UserIcon } from "lucide-react";
+import Pusher from "pusher-js";
 
 import { UserAvatar, UserAvatarSkeleton } from "@/components/user-avatar";
 import { VerifiedMark } from "@/components/verified-mark";
@@ -20,6 +17,7 @@ export function Header({
                            isFollowing,
                            name,
                            viewerIdentity,
+                           streamId,
                        }: {
     imageUrl: string;
     hostName: string;
@@ -27,15 +25,72 @@ export function Header({
     viewerIdentity: string;
     isFollowing: boolean;
     name: string;
+    streamId: string;
 }) {
-    const participants = useParticipants();
-    const participant = useRemoteParticipant(hostIdentity);
+    const [isLive, setIsLive] = useState(false);
+    const [participantCount, setParticipantCount] = useState(0);
+    const [viewers, setViewers] = useState<Set<string>>(new Set());
 
-    const isLive = !!participant;
-    const participantCount = participants.length - 1;
+    useEffect(() => {
+        // Vérifier si le stream est en ligne
+        const checkStreamStatus = async () => {
+            try {
+                const hlsUrl = `${process.env.NEXT_PUBLIC_MEDIAMTX_HLS_URL}/app/live/${hostName}/index.m3u8`;
+                const response = await fetch(hlsUrl, { method: "GET" });
+                setIsLive(response.ok);
+            } catch (error) {
+                setIsLive(false);
+            }
+        };
 
-    const hostAsViewer = `host-${hostIdentity}`;
-    const isHost = hostAsViewer === viewerIdentity;
+        checkStreamStatus();
+        const interval = setInterval(checkStreamStatus, 10000);
+        return () => clearInterval(interval);
+    }, [hostName]);
+
+    // Pusher setup for viewer count
+    useEffect(() => {
+        const pusher = new Pusher(process.env.NEXT_PUBLIC_PUSHER_KEY!, {
+            cluster: process.env.NEXT_PUBLIC_PUSHER_CLUSTER!,
+            authEndpoint: "/api/pusher/auth",
+        });
+
+        const channel = pusher.subscribe(`presence-stream-${streamId}`);
+
+        channel.bind("viewer-joined", (data: { userId: string }) => {
+            setViewers((prev) => new Set(prev).add(data.userId));
+        });
+
+        channel.bind("viewer-left", (data: { userId: string }) => {
+            setViewers((prev) => {
+                const newSet = new Set(prev);
+                newSet.delete(data.userId);
+                return newSet;
+            });
+        });
+
+        // Announce presence
+        fetch("/api/viewers/presence", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+                streamId,
+                userId: viewerIdentity,
+                username: hostName,
+            }),
+        });
+
+        return () => {
+            pusher.unsubscribe(`presence-stream-${streamId}`);
+            pusher.disconnect();
+        };
+    }, [streamId, viewerIdentity, hostName]);
+
+    useEffect(() => {
+        setParticipantCount(viewers.size + 1); // +1 pour inclure le viewer actuel
+    }, [viewers]);
+
+    const isHost = hostIdentity === viewerIdentity;
 
     return (
         <div className="flex flex-col lg:flex-row gap-y-6 lg:gap-y-0 items-start justify-between">
