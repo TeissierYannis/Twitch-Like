@@ -170,22 +170,22 @@ export const businessValidations = {
 };
 
 // Real-time validation for forms
-export const createFormValidation = <T>(schema: z.ZodSchema<T>) => {
+export const createFormValidation = <T extends z.ZodRawShape>(schema: z.ZodObject<T>) => {
   return {
     validate: (data: unknown) => validateInput(schema, data),
-    validateField: (fieldName: keyof T, value: unknown) => {
+    validateField: (fieldName: string, value: unknown) => {
       try {
-        const fieldSchema = schema.shape[fieldName as string];
-        if (fieldSchema) {
-          fieldSchema.parse(value);
+        const fieldSchema = schema.shape[fieldName as keyof T];
+        if (fieldSchema && 'parse' in fieldSchema) {
+          (fieldSchema as unknown as z.ZodType).parse(value);
           return { success: true as const };
         }
         return { success: false as const, error: "Unknown field" };
       } catch (error) {
         if (error instanceof z.ZodError) {
-          return { 
-            success: false as const, 
-            error: error.errors[0]?.message || "Invalid value" 
+          return {
+            success: false as const,
+            error: error.issues[0]?.message || "Invalid value"
           };
         }
         return { success: false as const, error: "Validation error" };

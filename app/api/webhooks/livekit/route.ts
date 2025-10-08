@@ -127,8 +127,8 @@ export async function POST(req: Request) {
                 });
 
                 if (stream) {
-                    // Record metrics snapshot
-                    const participantCount = event.numParticipants || 1;
+                    // Record metrics snapshot with room numParticipants
+                    const participantCount = room.numParticipants ?? 1;
                     await analyticsService.recordMetrics(stream.id, participantCount);
                 }
             } catch (error) {
@@ -146,8 +146,8 @@ export async function POST(req: Request) {
                 });
 
                 if (stream) {
-                    // Record metrics snapshot
-                    const participantCount = Math.max((event.numParticipants || 1) - 1, 0);
+                    // Record metrics snapshot with room numParticipants
+                    const participantCount = Math.max((room.numParticipants ?? 1) - 1, 0);
                     await analyticsService.recordMetrics(stream.id, participantCount);
                 }
             } catch (error) {

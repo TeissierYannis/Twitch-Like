@@ -101,6 +101,7 @@ export function TheaterPlayer({
                 isFollowing={isFollowing}
                 name={stream.name}
                 viewerIdentity={user.id}
+                streamId={stream.id}
               />
             </div>
           </div>
@@ -117,6 +118,7 @@ export function TheaterPlayer({
                   isChatEnabled={stream.isChatEnabled}
                   isChatDelayed={stream.isChatDelayed}
                   isChatFollowersOnly={stream.isChatFollowersOnly}
+                  streamId={stream.id}
                 />
               </div>
             </div>

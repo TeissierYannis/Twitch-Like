@@ -31,8 +31,9 @@ export const ConnectModal = () => {
 
     const onSubmit = () => {
         startTransition(() => {
-            // parse vers number pour le server action (qui attend l'enum num)
-            createIngress(parseInt(ingressType, 10))
+            // Convertir la valeur string en type "RTMP" | "WHIP"
+            const type = ingressType === WHIP ? "WHIP" : "RTMP";
+            createIngress(type)
                 .then(() => {
                     toast.success("Ingress created successfully.");
                     closeRef?.current?.click();
