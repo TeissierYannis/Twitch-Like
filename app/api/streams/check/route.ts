@@ -13,15 +13,32 @@ export async function POST(req: NextRequest) {
         }
 
         // Vérifier si le stream HLS existe
-        const hlsUrl = `${process.env.NEXT_PUBLIC_MEDIAMTX_HLS_URL}/app/live/${username}/index.m3u8`;
+        // Essayer d'abord sans port (reverse proxy), puis avec le port 8888 (direct)
+        const baseUrl = process.env.NEXT_PUBLIC_MEDIAMTX_HLS_URL;
+        const hlsUrls = [
+            `${baseUrl}/app/live/${username}/index.m3u8`,
+            `${baseUrl}:8888/app/live/${username}/index.m3u8`
+        ];
+
+        console.log('[Stream Check] Checking HLS URLs for', username);
 
         let isLive = false;
-        try {
-            const response = await fetch(hlsUrl, { method: "HEAD" });
-            isLive = response.ok;
-        } catch (error) {
-            isLive = false;
+        for (const hlsUrl of hlsUrls) {
+            try {
+                console.log('[Stream Check] Trying URL:', hlsUrl);
+                const response = await fetch(hlsUrl, { method: "HEAD", cache: 'no-store' });
+                if (response.ok) {
+                    isLive = true;
+                    console.log('[Stream Check] Found active stream at:', hlsUrl);
+                    break;
+                }
+            } catch (error) {
+                // Try next URL
+                continue;
+            }
         }
+
+        console.log('[Stream Check] Final result for', username, ':', isLive);
 
         // Mettre à jour la base de données
         const stream = await db.stream.findFirst({
@@ -123,14 +140,23 @@ export async function GET() {
         const updates = [];
 
         for (const stream of streams) {
-            const hlsUrl = `${process.env.NEXT_PUBLIC_MEDIAMTX_HLS_URL}/app/live/${stream.user.username}/index.m3u8`;
+            const baseUrl = process.env.NEXT_PUBLIC_MEDIAMTX_HLS_URL;
+            const hlsUrls = [
+                `${baseUrl}/app/live/${stream.user.username}/index.m3u8`,
+                `${baseUrl}:8888/app/live/${stream.user.username}/index.m3u8`
+            ];
 
             let isLive = false;
-            try {
-                const response = await fetch(hlsUrl, { method: "HEAD" });
-                isLive = response.ok;
-            } catch (error) {
-                isLive = false;
+            for (const hlsUrl of hlsUrls) {
+                try {
+                    const response = await fetch(hlsUrl, { method: "HEAD", cache: 'no-store' });
+                    if (response.ok) {
+                        isLive = true;
+                        break;
+                    }
+                } catch (error) {
+                    continue;
+                }
             }
 
             if (!isLive && stream.isLive) {

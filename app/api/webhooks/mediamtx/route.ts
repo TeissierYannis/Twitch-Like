@@ -11,6 +11,8 @@ export async function POST(req: Request) {
         // { event: "publish", path: "live/username" }
         // { event: "unpublish", path: "live/username" }
 
+        console.log('MediaMTX webhook received:', JSON.stringify(body));
+
         const { event, path } = body;
 
         if (!event || !path) {
@@ -19,17 +21,24 @@ export async function POST(req: Request) {
 
         // Extraire le username du path
         // Formats possibles: "live/username" ou "app/live/username"
+        // Le path MediaMTX contient la variable $MTX_PATH qui est le chemin complet
+        console.log('[MediaMTX Webhook] Received path:', path);
+
         const pathParts = path.split("/");
         const username = pathParts[pathParts.length - 1];
 
         if (!username) {
+            console.error('[MediaMTX Webhook] Invalid path format, no username found:', path);
             return new Response("Invalid path format", { status: 400 });
         }
 
-        // Vérifier que le path contient bien "live/username"
+        // Vérifier que le path contient bien "live/"
         if (!path.includes("live/")) {
+            console.error('[MediaMTX Webhook] Invalid path format, must contain "live/":', path);
             return new Response("Invalid path format, must contain 'live/'", { status: 400 });
         }
+
+        console.log('[MediaMTX Webhook] Extracted username:', username, 'Event:', event);
 
         // Trouver le stream par username
         const stream = await db.stream.findFirst({

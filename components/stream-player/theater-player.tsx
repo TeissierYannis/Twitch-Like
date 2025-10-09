@@ -3,6 +3,7 @@
 import React, { useEffect } from "react";
 import { X } from "lucide-react";
 import { useTheaterMode, useTheaterModeKeyboard } from "@/hooks/use-theater-mode";
+import { useStreamStatus } from "@/hooks/use-stream-status";
 import { cn } from "@/lib/utils";
 import { useChatSidebar } from "@/store/use-chat-sidebar";
 import { Video } from "./video";
@@ -43,6 +44,13 @@ export function TheaterPlayer({
 }: TheaterPlayerProps) {
   const { isTheaterMode, disable } = useTheaterMode();
   const { collapsed } = useChatSidebar();
+
+  // Monitor stream status and auto-refresh when it goes offline
+  useStreamStatus({
+    username: user.username,
+    initialIsLive: stream.isLive,
+    checkInterval: 30000, // Check every 30 seconds
+  });
 
   // Enable keyboard shortcuts
   useTheaterModeKeyboard();

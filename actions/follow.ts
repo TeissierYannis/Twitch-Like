@@ -5,7 +5,9 @@ import {revalidatePath} from "next/cache";
 
 export const onFollow = async (id: string) => {
     try {
+        console.log('[onFollow] Starting follow for user id:', id);
         const followedUser = await followUser(id);
+        console.log('[onFollow] Follow successful:', followedUser);
 
         revalidatePath("/");
 
@@ -14,14 +16,17 @@ export const onFollow = async (id: string) => {
         }
 
         return followedUser;
-    } catch {
+    } catch (error) {
+        console.error('[onFollow] Error:', error);
         throw new Error("Internal Error");
     }
 }
 
 export const onUnfollow = async (id: string) => {
     try {
+        console.log('[onUnfollow] Starting unfollow for user id:', id);
         const unfollowedUser = await unfollowUser(id);
+        console.log('[onUnfollow] Unfollow successful:', unfollowedUser);
 
         revalidatePath("/");
 
@@ -30,7 +35,8 @@ export const onUnfollow = async (id: string) => {
         }
 
         return unfollowedUser;
-    } catch {
+    } catch (error) {
+        console.error('[onUnfollow] Error:', error);
         throw new Error("Internal Error");
     }
 }

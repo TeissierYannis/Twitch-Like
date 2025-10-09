@@ -4,6 +4,7 @@ import React from "react";
 
 import { useChatSidebar } from "@/store/use-chat-sidebar";
 import { useTheaterMode } from "@/hooks/use-theater-mode";
+import { useStreamStatus } from "@/hooks/use-stream-status";
 import { cn } from "@/lib/utils";
 
 import { ChatToggle } from "./chat-toggle";
@@ -46,6 +47,13 @@ export function StreamPlayer({
 }) {
     const { collapsed } = useChatSidebar((state) => state);
     const { isTheaterMode } = useTheaterMode();
+
+    // Monitor stream status and auto-refresh when it goes offline
+    useStreamStatus({
+        username: user.username,
+        initialIsLive: stream.isLive,
+        checkInterval: 30000, // Check every 30 seconds
+    });
 
     return (
         <>
