@@ -12,7 +12,7 @@ A modern, full-stack live streaming platform built with Next.js 15, featuring re
 
 StreamVibe is a production-ready streaming platform that enables content creators to broadcast live, interact with their audience through real-time chat, and track their performance with comprehensive analytics. Built with modern web technologies and optimized for performance and scalability.
 
-**🔗 Live Demo:** [https://twitch-like-opal.vercel.app](https://twitch-like-opal.vercel.app)
+**🔗 Live Demo:** [https://streamvibe.teissieryannis.com/](https://streamvibe.teissieryannis.com/)
 
 ## ✨ Key Features
 
