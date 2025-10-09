@@ -2,6 +2,7 @@
 
 import React, { useEffect } from "react";
 import { X } from "lucide-react";
+import { useUser } from "@clerk/nextjs";
 import { useTheaterMode, useTheaterModeKeyboard } from "@/hooks/use-theater-mode";
 import { useStreamStatus } from "@/hooks/use-stream-status";
 import { cn } from "@/lib/utils";
@@ -44,6 +45,7 @@ export function TheaterPlayer({
 }: TheaterPlayerProps) {
   const { isTheaterMode, disable } = useTheaterMode();
   const { collapsed } = useChatSidebar();
+  const { user: currentUser } = useUser();
 
   // Monitor stream status and auto-refresh when it goes offline
   useStreamStatus({
@@ -51,6 +53,9 @@ export function TheaterPlayer({
     initialIsLive: stream.isLive,
     checkInterval: 30000, // Check every 30 seconds
   });
+
+  // Use the current logged-in user's ID, or a guest ID if not logged in
+  const viewerIdentity = currentUser?.id || "guest";
 
   // Enable keyboard shortcuts
   useTheaterModeKeyboard();
@@ -108,7 +113,7 @@ export function TheaterPlayer({
                 hostIdentity={user.id}
                 isFollowing={isFollowing}
                 name={stream.name}
-                viewerIdentity={user.id}
+                viewerIdentity={viewerIdentity}
                 streamId={stream.id}
               />
             </div>
@@ -119,7 +124,7 @@ export function TheaterPlayer({
             <div className="w-[380px] flex-shrink-0">
               <div className="bg-card/90 backdrop-blur-sm border border-border/50 rounded-xl shadow-2xl overflow-hidden h-full">
                 <Chat
-                  viewerName={user.username}
+                  viewerName={currentUser?.username || "Guest"}
                   hostName={user.username}
                   hostIdentity={user.id}
                   isFollowing={isFollowing}

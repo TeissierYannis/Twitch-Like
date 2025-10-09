@@ -1,11 +1,17 @@
 import React, { Suspense } from "react";
 import { Metadata } from "next";
 
+import { getStreams } from "@/lib/feed-service";
 import { Results, ResultsSkeleton } from "./_components/results";
 
 export const metadata: Metadata = {
     title: "Home",
 };
+
+async function ResultsWrapper() {
+    const data = await getStreams();
+    return <Results initialData={data} />;
+}
 
 export default function Home() {
     return (
@@ -21,7 +27,7 @@ export default function Home() {
                         </p>
                     </div>
                     <Suspense fallback={<ResultsSkeleton />}>
-                        <Results />
+                        <ResultsWrapper />
                     </Suspense>
                 </div>
             </div>

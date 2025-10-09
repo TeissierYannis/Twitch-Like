@@ -1,6 +1,7 @@
 "use client";
 
 import React from "react";
+import { useUser } from "@clerk/nextjs";
 
 import { useChatSidebar } from "@/store/use-chat-sidebar";
 import { useTheaterMode } from "@/hooks/use-theater-mode";
@@ -47,6 +48,7 @@ export function StreamPlayer({
 }) {
     const { collapsed } = useChatSidebar((state) => state);
     const { isTheaterMode } = useTheaterMode();
+    const { user: currentUser } = useUser();
 
     // Monitor stream status and auto-refresh when it goes offline
     useStreamStatus({
@@ -54,6 +56,9 @@ export function StreamPlayer({
         initialIsLive: stream.isLive,
         checkInterval: 30000, // Check every 30 seconds
     });
+
+    // Use the current logged-in user's ID, or a guest ID if not logged in
+    const viewerIdentity = currentUser?.id || "guest";
 
     return (
         <>
@@ -88,20 +93,20 @@ export function StreamPlayer({
                             hostIdentity={user.id}
                             isFollowing={isFollowing}
                             name={stream.name}
-                            viewerIdentity={user.id}
+                            viewerIdentity={viewerIdentity}
                             streamId={stream.id}
                         />
                     </div>
                     <InfoCard
                         hostIdentity={user.id}
-                        viewerIdentity={user.id}
+                        viewerIdentity={viewerIdentity}
                         name={stream.name}
                         thumbnailUrl={stream.thumbnailUrl}
                     />
                     <AboutCard
                         hostName={user.username}
                         hostIdentity={user.id}
-                        viewerIdentity={user.id}
+                        viewerIdentity={viewerIdentity}
                         bio={user.bio}
                         followedByCount={user._count.followedBy}
                     />
@@ -109,7 +114,7 @@ export function StreamPlayer({
                 <div className={cn("col-span-1", collapsed && "hidden")}>
                     <div className="bg-card/80 backdrop-blur-sm border border-border/50 rounded-xl shadow-lg overflow-hidden h-full">
                         <Chat
-                            viewerName={user.username}
+                            viewerName={currentUser?.username || "Guest"}
                             hostName={user.username}
                             hostIdentity={user.id}
                             isFollowing={isFollowing}

@@ -1,12 +1,44 @@
-import React from "react";
+"use client";
 
-import { getStreams } from "@/lib/feed-service";
+import React, { useEffect } from "react";
+import { useRouter } from "next/navigation";
+import { User } from "@prisma/client";
+
 import { Skeleton } from "@/components/ui/skeleton";
 
 import { ResultCard, ResultCardSkeleton } from "../result-card";
 
-export async function Results() {
-    const data = await getStreams();
+interface Stream {
+    id: string;
+    user: User;
+    isLive: boolean;
+    name: string;
+    thumbnailUrl: string | null;
+}
+
+interface ResultsClientProps {
+    initialData: Stream[];
+}
+
+export function Results({ initialData }: ResultsClientProps) {
+    const router = useRouter();
+
+    // Poll for live status updates every 30 seconds
+    useEffect(() => {
+        const checkLiveStatus = async () => {
+            try {
+                // Refresh the page data to get updated stream statuses
+                router.refresh();
+            } catch (error) {
+                console.error('[Results] Failed to refresh live status:', error);
+            }
+        };
+
+        // Check every 30 seconds
+        const interval = setInterval(checkLiveStatus, 30000);
+
+        return () => clearInterval(interval);
+    }, [router]);
 
     return (
         <div className="space-y-6">
@@ -16,7 +48,7 @@ export async function Results() {
                 </h2>
                 <div className="h-1 flex-1 mx-4 bg-gradient-to-r from-primary/20 via-accent/20 to-transparent rounded-full" />
             </div>
-            {data.length === 0 ? (
+            {initialData.length === 0 ? (
                 <div className="flex flex-col items-center justify-center py-16 space-y-4">
                     <div className="w-16 h-16 rounded-full bg-muted/50 flex items-center justify-center">
                         <svg className="w-8 h-8 text-muted-foreground" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -30,7 +62,7 @@ export async function Results() {
                 </div>
             ) : (
                 <div className="grid gap-6 grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5">
-                    {data.map((result) => (
+                    {initialData.map((result) => (
                         <ResultCard key={result.id} data={result} />
                     ))}
                 </div>

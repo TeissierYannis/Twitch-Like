@@ -1,8 +1,10 @@
 "use client";
 
-import {Follow, User} from "@prisma/client";
-import {useSidebar} from "@/store/use-sidebar";
-import {UserItem, UserItemSkeleton} from "@/app/(browse)/_components/sidebar/user-item";
+import { useEffect } from "react";
+import { Follow, User } from "@prisma/client";
+import { useSidebar } from "@/store/use-sidebar";
+import { UserItem, UserItemSkeleton } from "@/app/(browse)/_components/sidebar/user-item";
+import { useRouter } from "next/navigation";
 
 interface FollowingProps {
     data: (Follow & {
@@ -15,7 +17,25 @@ interface FollowingProps {
 export const Following = ({
                               data
                           }: FollowingProps) => {
-    const {collapsed} = useSidebar((state) => state);
+    const { collapsed } = useSidebar((state) => state);
+    const router = useRouter();
+
+    // Poll for live status updates every 30 seconds
+    useEffect(() => {
+        const checkLiveStatus = async () => {
+            try {
+                // Refresh the page data to get updated stream statuses
+                router.refresh();
+            } catch (error) {
+                console.error('[Following] Failed to refresh live status:', error);
+            }
+        };
+
+        // Check every 30 seconds
+        const interval = setInterval(checkLiveStatus, 30000);
+
+        return () => clearInterval(interval);
+    }, [router]);
 
     if (!data.length) {
         return null;
