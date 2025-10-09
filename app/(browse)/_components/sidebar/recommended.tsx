@@ -1,10 +1,9 @@
 "use client";
 
-import { useEffect, useState } from "react";
 import { User } from "@prisma/client";
 import { useSidebar } from "@/store/use-sidebar";
 import { UserItem, UserItemSkeleton } from "@/app/(browse)/_components/sidebar/user-item";
-import { useRouter } from "next/navigation";
+import { useLiveStatus } from "@/hooks/use-live-status";
 
 interface RecommendedProps {
     data: (User & {
@@ -16,34 +15,7 @@ export const Recommended = ({
                                 data
                             }: RecommendedProps) => {
     const { collapsed } = useSidebar((state) => state);
-    const router = useRouter();
-    const [liveStatus, setLiveStatus] = useState<Record<string, boolean>>({});
-
-    // Initialize live status from props
-    useEffect(() => {
-        const initialStatus: Record<string, boolean> = {};
-        data.forEach(user => {
-            initialStatus[user.id] = user.stream?.isLive ?? false;
-        });
-        setLiveStatus(initialStatus);
-    }, [data]);
-
-    // Poll for live status updates every 30 seconds
-    useEffect(() => {
-        const checkLiveStatus = async () => {
-            try {
-                // Refresh the page data to get updated stream statuses
-                router.refresh();
-            } catch (error) {
-                console.error('[Recommended] Failed to refresh live status:', error);
-            }
-        };
-
-        // Check every 30 seconds
-        const interval = setInterval(checkLiveStatus, 30000);
-
-        return () => clearInterval(interval);
-    }, [router]);
+    const { liveStatus } = useLiveStatus(30000);
 
     const showLabel = !collapsed && data.length > 0;
 
@@ -57,14 +29,19 @@ export const Recommended = ({
                 </div>
             )}
             <ul className="space-y-2 px-2">
-                {data.map((user) => (
-                   <UserItem
-                       key={user.id}
-                       username={user.username}
-                       imageUrl={user.imageUrl}
-                       isLive={user.stream?.isLive}
-                   />
-                ))}
+                {data.map((user) => {
+                    // Check live status from hook, fallback to initial data
+                    const isLive = liveStatus[user.id] ?? user.stream?.isLive ?? false;
+
+                    return (
+                        <UserItem
+                            key={user.id}
+                            username={user.username}
+                            imageUrl={user.imageUrl}
+                            isLive={isLive}
+                        />
+                    );
+                })}
             </ul>
         </div>
     )

@@ -1,10 +1,9 @@
 "use client";
 
-import { useEffect } from "react";
 import { Follow, User } from "@prisma/client";
 import { useSidebar } from "@/store/use-sidebar";
 import { UserItem, UserItemSkeleton } from "@/app/(browse)/_components/sidebar/user-item";
-import { useRouter } from "next/navigation";
+import { useLiveStatus } from "@/hooks/use-live-status";
 
 interface FollowingProps {
     data: (Follow & {
@@ -18,24 +17,7 @@ export const Following = ({
                               data
                           }: FollowingProps) => {
     const { collapsed } = useSidebar((state) => state);
-    const router = useRouter();
-
-    // Poll for live status updates every 30 seconds
-    useEffect(() => {
-        const checkLiveStatus = async () => {
-            try {
-                // Refresh the page data to get updated stream statuses
-                router.refresh();
-            } catch (error) {
-                console.error('[Following] Failed to refresh live status:', error);
-            }
-        };
-
-        // Check every 30 seconds
-        const interval = setInterval(checkLiveStatus, 30000);
-
-        return () => clearInterval(interval);
-    }, [router]);
+    const { liveStatus } = useLiveStatus(30000);
 
     if (!data.length) {
         return null;
@@ -53,14 +35,19 @@ export const Following = ({
                 </div>
             )}
             <ul className="space-y-2 px-2">
-                {data.map((follow) => (
-                    <UserItem
-                        key={follow.following.id}
-                        username={follow.following.username}
-                        imageUrl={follow.following.imageUrl}
-                        isLive={follow.following.stream?.isLive}
-                    />
-                ))}
+                {data.map((follow) => {
+                    // Check live status from hook, fallback to initial data
+                    const isLive = liveStatus[follow.following.id] ?? follow.following.stream?.isLive ?? false;
+
+                    return (
+                        <UserItem
+                            key={follow.following.id}
+                            username={follow.following.username}
+                            imageUrl={follow.following.imageUrl}
+                            isLive={isLive}
+                        />
+                    );
+                })}
             </ul>
         </div>
     )

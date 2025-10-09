@@ -1,10 +1,10 @@
 "use client";
 
-import React, { useEffect } from "react";
-import { useRouter } from "next/navigation";
+import React from "react";
 import { User } from "@prisma/client";
 
 import { Skeleton } from "@/components/ui/skeleton";
+import { useLiveStatus } from "@/hooks/use-live-status";
 
 import { ResultCard, ResultCardSkeleton } from "../result-card";
 
@@ -21,24 +21,7 @@ interface ResultsClientProps {
 }
 
 export function Results({ initialData }: ResultsClientProps) {
-    const router = useRouter();
-
-    // Poll for live status updates every 30 seconds
-    useEffect(() => {
-        const checkLiveStatus = async () => {
-            try {
-                // Refresh the page data to get updated stream statuses
-                router.refresh();
-            } catch (error) {
-                console.error('[Results] Failed to refresh live status:', error);
-            }
-        };
-
-        // Check every 30 seconds
-        const interval = setInterval(checkLiveStatus, 30000);
-
-        return () => clearInterval(interval);
-    }, [router]);
+    const { liveStatus } = useLiveStatus(30000);
 
     return (
         <div className="space-y-6">
@@ -62,9 +45,17 @@ export function Results({ initialData }: ResultsClientProps) {
                 </div>
             ) : (
                 <div className="grid gap-6 grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5">
-                    {initialData.map((result) => (
-                        <ResultCard key={result.id} data={result} />
-                    ))}
+                    {initialData.map((result) => {
+                        // Check live status from hook, fallback to initial data
+                        const isLive = liveStatus[result.user.id] ?? result.isLive;
+
+                        return (
+                            <ResultCard
+                                key={result.id}
+                                data={{ ...result, isLive }}
+                            />
+                        );
+                    })}
                 </div>
             )}
         </div>
